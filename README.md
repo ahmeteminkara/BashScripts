@@ -14,4 +14,4 @@ chmod 755 fluttertool
 $ fluttertool
 ````
 
-<kbd><img src="https://raw.githubusercontent.com/ahmeteminkara/BashScripts/main/flutter_clean_demo.jpg" width="400" /></kbd>
+<kbd><img src="https://raw.githubusercontent.com/ahmeteminkara/BashScripts/main/flutter_clean_demo.jpg" width="550" /></kbd>
