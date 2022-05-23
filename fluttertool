@@ -1,0 +1,143 @@
+#!/bin/bash
+
+searchFile="pubspec.yaml"
+pathArray=()
+
+
+# Her yerde arama yapar
+SearchAllEverything(){
+    echo $(/usr/bin/mdfind -name $1)
+}
+
+# Seçili yerde arama yapar
+SearchSelectedFolder(){
+    echo $(/usr/bin/mdfind -name $1 -onlyin $2)
+}
+
+# İçerisinde belirtilen kelime geçerse eklemez
+ArrayFilterRemove(){
+    tempArr=()
+    array=$1
+
+    for pathItem in "${array[@]}"; do
+        if [[ $pathItem != *".symlinks"* ]];then
+            tempArr+=($pathArray)
+        fi
+    done
+    echo $tempArr
+}
+
+# RegEx ile metin değiştirme
+ReplaceRegEx(){
+    word=$1
+    regEx=$2
+    replaceWith=$3
+    echo "$word" | sed -e "s/$regEx/$replaceWith/g"
+}
+
+# Flutter temizleme komutu
+CleanPath(){
+    clear;
+    cd $1;
+    echo "🔥" [$2"/"${#pathArray[@]}] `pwd`;
+    flutter clean;
+    clear;
+}
+
+# arama yapıp işlemleri yapar
+FindAndLoop(){
+    clear;
+    echo "Searching file name is '${searchFile}'"
+    echo "Array length : ${#pathArray[@]}"
+    
+    # For (i in arr) kullanımı
+    # for item in ${pathArray[@]}; do
+    #    path=$(ReplaceRegEx $item "$searchFile.*" "")
+    
+    # For (i;i>arr.size;i++) kullanımı
+    for index in ${!pathArray[@]}; do
+        # RegEx ile path in sonuna kadar temizle
+        path=$(ReplaceRegEx ${pathArray[index]} "$searchFile.*" "")
+        # sadece gösterirken 0 dan başlamasın diye
+        CleanPath $path "$(($index + 1))"
+    done
+        echo "✅ script run complate"
+}
+
+CheckRoute(){
+    clear;
+    option=$1
+
+    if [ $# -eq 0 ]
+    then
+        clear;
+        INIT
+        exit 1
+    fi
+    
+    if [ $option = 'E' ] || [ $option = 'e' ]
+    then
+        # bulduğu dosyaların path lerini diziye atar
+        pathArray=($(SearchAllEverything $searchFile)) 
+        FindAndLoop;
+    elif [ $option = 'S' ] || [ $option = 's' ]
+    then 
+        echo "You specify folder:";
+        read searchPath
+        # bulduğu dosyaların path lerini diziye atar
+        if [ $searchPath = 'pwd' ] 
+        then
+            searchPath=$(pwd)
+        fi
+        pathArray=($(SearchSelectedFolder $searchFile $searchPath))
+        FindAndLoop;
+    elif [ $option == 'X' ] || [ $option == 'x' ]
+    then 
+        clear;
+        echo "By by";
+        exit 1
+    else
+        INIT
+    fi
+    
+}
+
+INIT(){
+    clear;
+    echo "***********************************";
+    echo "Automatically find flutter projects"
+    echo "and run the cleanup command.";
+    echo "***********************************";
+    echo ""
+    echo "Choose an option:";
+    echo "E: Search it everywhere";
+    echo "S: You specify the folder to search";
+    echo "X: Close";
+    read inpuValue;
+    
+    CheckRoute $inpuValue
+
+}
+INIT
+
+################################################
+#
+#   permission fix -> chmod 755 fluttertool
+#
+#   a='I am a string'
+#
+#
+#   Match at the beginning:
+#   echo "${a/#I/y}" -> y am a string
+#-----------------------------------------------
+#   Match at the end:
+#   echo "${a/%g/N}" -> I am a strinN
+#-----------------------------------------------
+#   Add prefix to array items
+#   A=(hello world)
+#   echo "${A[@]/#/R}" -> Rhello Rworld
+#
+#   if [ test -d $z ]; then
+#       echo "$z is a directory"
+#   fi
+################################################
